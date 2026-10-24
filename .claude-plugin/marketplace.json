@@ -1,0 +1,16 @@
+{
+  "name": "sapar-skills",
+  "description": "Skills by Sapar: MIREA Moodle automation for AI agents.",
+  "owner": {
+    "name": "Sapar",
+    "url": "https://github.com/Sapar-hub"
+  },
+  "plugins": [
+    {
+      "name": "mirea-moodle",
+      "source": "./",
+      "description": "MIREA Moodle (online-edu.mirea.ru): SSO login with OTP, courses, folders, downloads, docx→pdf.",
+      "version": "1.0.0"
+    }
+  ]
+}

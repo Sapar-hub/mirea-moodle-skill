@@ -1,0 +1,10 @@
+{
+  "name": "mirea-moodle",
+  "version": "1.0.0",
+  "description": "Log in to MIREA Moodle (online-edu.mirea.ru) via Keycloak SSO + OTP, list courses, browse folders, download files, convert docx to PDF.",
+  "author": { "name": "Sapar", "url": "https://github.com/Sapar-hub" },
+  "homepage": "https://github.com/Sapar-hub/mirea-moodle-skill",
+  "repository": "https://github.com/Sapar-hub/mirea-moodle-skill",
+  "license": "MIT",
+  "keywords": ["mirea", "moodle", "university", "keycloak", "russian"]
+}
