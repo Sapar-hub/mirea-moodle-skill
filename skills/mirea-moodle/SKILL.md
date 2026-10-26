@@ -15,9 +15,11 @@ re-deriving the OIDC dance. It keeps cookies and intermediate pages in
 - **Credentials come from the environment**: `KC_USER` and `KC_PASS`. Ask the
   user for them if they are missing. Never write the password into a file, a
   commit, or a command that will be echoed back.
-- **2FA is human-in-the-loop**: after `start`, the code goes to the user's
-  phone/MAX/email. Ask the user for the 6 digits and pass them to `otp`. The
-  code lives ~2–5 minutes, so request it immediately. Never try to bypass or
+- **2FA**: if `MAILRU_USER` and `MAILRU_APPPASS` (Mail.ru app password) are
+  set, `start` switches 2FA to email and reads the code over IMAP itself —
+  login is one command, no human needed. Otherwise the code goes to the
+  user's phone/MAX: ask for the 6 digits and pass them to `otp`. The code
+  lives ~2–5 minutes, so request it immediately. Never try to bypass or
   guess it.
 - **Network**: some sandboxes/containers route traffic through an egress proxy
   that blocks `mirea.ru`, and IPv6 can hang. The script always uses
@@ -74,6 +76,7 @@ folder id → `folder <id>`. Don't hardcode IDs.
 | `не нашёл loginAction` | Keycloak form changed; inspect `$MIREA_DIR/login.html` |
 | `логин/пароль не прошли` | Bad credentials or account locked; ask the user |
 | `код не принят или просрочен` | OTP expired; rerun `start` and ask for a fresh code |
+| `FAIL: servicerequireslogin` | Moodle session expired; rerun `start` |
 | `нет sesskey` | Login did not finish; complete `start` + `otp` first |
 | Downloaded file is HTML | URL fetched without the cookie jar; use `get` |
 | Cyrillic filename looks percent-encoded | `curl -OJ` saved it encoded; decode with `python3 -c "import urllib.parse,sys;print(urllib.parse.unquote(sys.argv[1]))"` |

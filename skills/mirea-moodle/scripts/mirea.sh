@@ -6,6 +6,7 @@
 #   export KC_USER='<student>@edu.mirea.ru' KC_PASS='...'
 #   ./mirea.sh check                 # проверить сеть
 #   ./mirea.sh start                 # логин+пароль -> код уходит тебе на телефон/МАКС
+#                                    # (если заданы MAILRU_USER+MAILRU_APPPASS — сразу вход через код из почты)
 #   ./mirea.sh otp 123456            # подставить код -> войти в Moodle
 #   ./mirea.sh courses               # список курсов (id :: название)
 #   ./mirea.sh course <course-id>          # папки/файлы курса
@@ -51,8 +52,13 @@ cmd_start() {
     extract_la "$DIR/otp.html" > "$DIR/otp_action"
     [ -s "$DIR/otp_action" ] || die "нет loginAction на шаге OTP"
     local ph; ph=$(grep -oE 'maskedPhone": *"[^"]*"' "$DIR/otp.html" | head -1 | sed -E 's/maskedPhone": *"//; s/"$//')
-    echo "OK: пароль принят. Код отправлен на ${ph:-телефон/МАКС}."
-    echo "    Дальше: ./mirea.sh otp <КОД>"
+    if [ -n "${MAILRU_USER:-}" ] && [ -n "${MAILRU_APPPASS:-}" ]; then
+      echo "OK: пароль принят. MAILRU_* заданы — переключаюсь на код из почты."
+      cmd_otp_email
+    else
+      echo "OK: пароль принят. Код отправлен на ${ph:-телефон/МАКС}."
+      echo "    Дальше: ./mirea.sh otp <КОД>"
+    fi
   elif grep -q KEYCLOAK_IDENTITY "$JAR"; then
     echo "OK: вошли без запроса OTP (сессия ещё жива) — можно сразу otp-callback не нужен; пробуй courses."
   else
@@ -95,10 +101,14 @@ need_sesskey() { [ -s "$DIR/sesskey" ] || die "нет sesskey — сначала
 
 cmd_courses() {
   local sk; sk=$(need_sesskey)
-  cj -H "Content-Type: application/json" -o "$DIR/courses.json" \
+  cj -H "Content-Type: application/json" -o "$DIR/courses.tmp.json" \
     "$BASE/lib/ajax/service.php?sesskey=$sk&info=core_course_get_enrolled_courses_by_timeline_classification" \
     --data '[{"index":0,"methodname":"core_course_get_enrolled_courses_by_timeline_classification","args":{"offset":0,"limit":0,"classification":"all","sort":"fullname","customfieldname":"","customfieldvalue":""}}]' >/dev/null
-  python3 -I -c "import json,sys;d=json.load(open(sys.argv[1]));cs=d[0].get('data',{}).get('courses',[]);[print(c['id'],'::',c['fullname']) for c in cs] or print('(пусто)')" "$DIR/courses.json"
+  # при ошибке (протухла сессия) не затираем прошлый courses.json
+  python3 -I -c "import json,sys;d=json.load(open(sys.argv[1]))[0]
+if d.get('error'): print('FAIL:',d.get('exception',{}).get('errorcode','?'),'— сессия протухла? повтори ./mirea.sh start',file=sys.stderr); sys.exit(1)
+cs=d.get('data',{}).get('courses',[]);[print(c['id'],'::',c['fullname']) for c in cs] or print('(пусто)')" "$DIR/courses.tmp.json" \
+    && mv "$DIR/courses.tmp.json" "$DIR/courses.json"
 }
 
 cmd_course() {
@@ -270,5 +280,5 @@ case "${1:-}" in
   folder)  shift; cmd_folder "$@" ;;
   get)     shift; cmd_get "$@" ;;
   topdf)   shift; cmd_topdf "$@" ;;
-  *) sed -n '2,20p' "$0"; exit 1 ;;
+  *) sed -n '2,15p' "$0"; exit 1 ;;
 esac
