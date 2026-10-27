@@ -215,8 +215,13 @@ except Exception as e:
     print('',end='');import sys;print('ERR:',e,file=sys.stderr);raise SystemExit(1)
 KEEP=os.environ.get('MIREA_KEEP_OTP')=='1'
 found=''; fid=None; deadline=time.time()+90
+# фильтры почты могут увести письмо SSO из INBOX (папка «МИРЭА», Спам)
+BOXES=os.environ.get('MIREA_OTP_FOLDERS','INBOX,&BBwEGAQgBC0EEA-,&BCEEPwQwBDw-').split(',')
+fbox='INBOX'
 while time.time()<deadline and not found:
-    M.select('INBOX')
+  for box in BOXES:
+    if found: break
+    if M.select('"%s"'%box)[0]!='OK': continue
     typ,d=M.search(None,'ALL')
     for i in reversed(d[0].split()[-12:]):
         typ,r=M.fetch(i,'(INTERNALDATE RFC822)')
@@ -228,12 +233,12 @@ while time.time()<deadline and not found:
             if idt and time.mktime(idt)<since-10: continue
         except Exception: pass
         c=extract(email.message_from_bytes(raw))
-        if c: found=c; fid=i; break
-    if not found: time.sleep(6)
+        if c: found=c; fid=i; fbox=box; break
+  if not found: time.sleep(6)
 # удалить письмо с кодом из INBOX и из Корзины (если не просили сохранить через MIREA_KEEP_OTP=1)
 if found and not KEEP:
     try:
-        M.select('INBOX'); M.store(fid,'+FLAGS','\\Deleted'); M.expunge()
+        M.select('"%s"'%fbox); M.store(fid,'+FLAGS','\\Deleted'); M.expunge()
     except Exception: pass
     try:
         typ,boxes=M.list()
