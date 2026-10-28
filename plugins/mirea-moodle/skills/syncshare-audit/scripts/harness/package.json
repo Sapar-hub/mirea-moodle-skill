@@ -1,0 +1,10 @@
+{
+  "name": "syncshare-audit-harness",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local mock + Playwright runner for the SyncShare coverage audit",
+  "type": "commonjs",
+  "dependencies": {
+    "playwright": "^1.49.1"
+  }
+}

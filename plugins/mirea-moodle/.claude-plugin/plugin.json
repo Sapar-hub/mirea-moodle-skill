@@ -1,0 +1,22 @@
+{
+  "name": "mirea-moodle",
+  "version": "1.1.0",
+  "description": "MIREA Moodle for AI agents: Keycloak SSO + OTP login, courses, folders, downloads, docx→pdf, plus a read-only SyncShare quiz-coverage audit harness.",
+  "author": {
+    "name": "Sapar",
+    "url": "https://github.com/Sapar-hub"
+  },
+  "homepage": "https://github.com/Sapar-hub/mirea-moodle-skill",
+  "repository": "https://github.com/Sapar-hub/mirea-moodle-skill",
+  "license": "MIT",
+  "keywords": [
+    "mirea",
+    "moodle",
+    "university",
+    "keycloak",
+    "russian",
+    "syncshare",
+    "quiz",
+    "audit"
+  ]
+}

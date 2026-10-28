@@ -1,6 +1,6 @@
 {
   "name": "sapar-skills",
-  "description": "Skills by Sapar: MIREA Moodle automation for AI agents.",
+  "description": "Skills by Sapar for AI agents: MIREA Moodle automation, a read-only SyncShare quiz-coverage audit, and a job-search pipeline (vacancy digest + applying on employer sites).",
   "owner": {
     "name": "Sapar",
     "url": "https://github.com/Sapar-hub"
@@ -8,8 +8,14 @@
   "plugins": [
     {
       "name": "mirea-moodle",
-      "source": "./",
-      "description": "MIREA Moodle (online-edu.mirea.ru): SSO login with OTP, courses, folders, downloads, docx→pdf.",
+      "source": "./plugins/mirea-moodle",
+      "description": "MIREA Moodle (online-edu.mirea.ru): SSO login with OTP, courses, folders, downloads, docx→pdf; plus syncshare-audit, a read-only SyncShare quiz-coverage audit.",
+      "version": "1.1.0"
+    },
+    {
+      "name": "job-search",
+      "source": "./plugins/job-search",
+      "description": "job-digest (Telegram/RSS via RSSHub → keyword filter → daily Mail.ru digest) and job-apply (drive Chromium to apply on employer career sites with a tailored resume PDF).",
       "version": "1.0.0"
     }
   ]

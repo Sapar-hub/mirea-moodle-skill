@@ -1,0 +1,15 @@
+# Одна лента на строку. RSSHub слушает 127.0.0.1:1200.
+# Telegram-канал: http://127.0.0.1:1200/telegram/channel/<username>
+# Любая обычная RSS/Atom-лента тоже подходит.
+# Строгий фильтр для шумной ленты: `<url> strict` (см. keywords.txt, слова с `+`).
+http://127.0.0.1:1200/telegram/channel/changellenge
+http://127.0.0.1:1200/telegram/channel/young_june strict
+# Шумные ленты (миддлы/сеньоры, все направления): `strict` — нужен и уровень, и направление,
+# непрошедшее не попадает в «Прочее».
+http://127.0.0.1:1200/telegram/channel/jobforjunior strict
+http://127.0.0.1:1200/telegram/channel/remotejun strict
+http://127.0.0.1:1200/telegram/channel/datasciencejobs strict
+http://127.0.0.1:1200/telegram/channel/foranalysts strict
+http://127.0.0.1:1200/telegram/channel/datajob strict
+http://127.0.0.1:1200/telegram/channel/jobs_ds strict
+http://127.0.0.1:1200/telegram/channel/careerspace strict

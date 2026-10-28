@@ -1,0 +1,31 @@
+{
+ "//": "Сортировка входящих Mail.ru (mailsort.py): папки по порядку, первое совпавшее правило выигрывает. from — подстроки адреса (ИЛИ), subject — подстрока темы (И с from). mark_read_after_days — отмечать прочитанным старше N дней. Это пример: впиши домены своих работодателей, вуза и магазинов.",
+ "folders": [
+  {
+   "name": "Отклики",
+   "rules": [
+    {"from": ["job@mts.ru", "internships@avito.ru", "hrplatform@sberbank.ru", "job@yandex-team.ru"]},
+    {"from": ["noreply@sender.ozon.ru"], "subject": "резюме"}
+   ]
+  },
+  {
+   "name": "МИРЭА",
+   "rules": [{"from": ["@mirea.ru"]}]
+  },
+  {
+   "name": "Покупки",
+   "mark_read_after_days": 7,
+   "rules": [{"from": ["mailer@sender.ozon.ru", "market.yandex.ru", "notification@russianpost.ru"]}]
+  },
+  {
+   "name": "INBOX/Public services",
+   "mark_read_after_days": 7,
+   "rules": [{"from": ["gosuslugi.ru", "@mos.ru", "tax.gov.ru"]}]
+  },
+  {
+   "name": "INBOX/Newsletters",
+   "mark_read_after_days": 7,
+   "rules": [{"from": ["timepad.ru", "welcome@e.mail.ru", "noreply@e.mail.ru"]}]
+  }
+ ]
+}
