@@ -5,6 +5,7 @@
 //   browser.mjs start [--headless] [--direct]   запустить (--direct: мимо прокси из env)
 //   browser.mjs stop
 //   browser.mjs goto <url>
+//   browser.mjs live <url>          вакансия ещё открыта? LIVE | CLOSED | UNSURE + улики
 //   browser.mjs snap                интерактивные элементы: ref, роль, подпись, значение
 //   browser.mjs text [maxChars]     видимый текст страницы
 //   browser.mjs click <ref>
@@ -200,6 +201,40 @@ const cmds = {
     await settle(page);
     console.log(`OK: ${await page.title()} — ${page.url()}`);
   },
+  async live([url], { ctx }) {
+    if (!url) die('live <url>');
+    // отдельная вкладка: текущая может держать недозаполненную анкету
+    const page = await ctx.newPage();
+    try { await cmds._live(url, page); } finally { await page.close().catch(() => {}); }
+  },
+  async _live(url, page) {
+    const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await settle(page);
+    const status = resp?.status() ?? 0, final = page.url();
+    const info = await page.evaluate(() => {
+      const t = document.body.innerText.replace(/\s+/g, ' ');
+      const vis = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+      const btn = [...document.querySelectorAll('a,button,[role=button],input[type=submit]')].filter(vis)
+        .map((el) => (el.innerText || el.value || el.getAttribute('aria-label') || '').trim())
+        .find((s) => /^(откликнуться|подать (заявку|отклик)|отправить (заявку|отклик|резюме)|хочу (к вам|в команду)|apply( now| for this job)?|submit application)/i.test(s));
+      const fields = [...document.querySelectorAll('input:not([type=hidden]),textarea,select')].filter(vis).length;
+      return { text: t, chars: t.length, btn, fields, file: !!document.querySelector('input[type=file]') };
+    });
+    const CLOSED = /(ваканси[яи] (закрыта|в архиве|неактуальна|больше не актуальна|не найдена|снята)|архивная вакансия|при[её]м (заявок|откликов|резюме) (завершен|завершён|закрыт|окончен)|набор (закрыт|завершен|завершён)|срок подачи (заявок )?(ист[её]к|закончился)|больше не принима|страница не найдена|no longer (accepting|available)|position (has been )?filled|job (is )?(closed|expired)|this (job|posting) (has )?expired|page not found)/i;
+    const m = CLOSED.exec(info.text);
+    const pathOf = (u) => { try { return new URL(u).pathname.replace(/\/+$/, ''); } catch { return ''; } };
+    // ушли с карточки на общий список вакансий или на главную
+    const listing = pathOf(url).length > 1 && pathOf(final) !== pathOf(url) &&
+      /^(|\/(ru|en))?(\/(vacancies|vacancy|jobs|careers?|career))?$/i.test(pathOf(final));
+    const ev = [`HTTP ${status}`, `final ${final}`, `текст ${info.chars} симв.`, `полей ${info.fields}${info.file ? ' (+файл)' : ''}`,
+      info.btn ? `кнопка «${info.btn.slice(0, 40)}»` : 'кнопки отклика не видно'];
+    if (m) ev.push(`маркер «${info.text.slice(Math.max(0, m.index - 40), m.index + m[0].length + 40).trim()}»`);
+    if (listing) ev.push('редирект на общий список');
+    const verdict = status >= 400 || listing || m ? 'CLOSED'
+      : (info.btn || info.fields >= 3 || info.file) && info.chars > 400 ? 'LIVE' : 'UNSURE';
+    console.log(verdict);
+    for (const e of ev) console.log(`  ${e}`);
+  },
   async snap(_, { page }) {
     console.log(`# ${await page.title()} — ${page.url()}`);
     const frames = page.frames();
@@ -332,7 +367,7 @@ const cmds = {
 };
 
 const [cmd, ...args] = process.argv.slice(2);
-if (!cmds[cmd]) die(`команды: ${Object.keys(cmds).join(', ')}`);
+if (!cmds[cmd] || cmd.startsWith('_')) die(`команды: ${Object.keys(cmds).filter((k) => !k.startsWith('_')).join(', ')}`);
 mkdirSync(HOME, { recursive: true });
 if (cmd === 'start') await cmds.start(args);
 else {

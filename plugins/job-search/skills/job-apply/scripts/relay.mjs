@@ -14,7 +14,7 @@ import { join } from 'node:path';
 const HOME = process.env.JOB_APPLY_HOME || join(homedir(), '.local/share/job-apply');
 const CDP = `http://127.0.0.1:${Number(process.env.JOB_APPLY_PORT || 9333)}`;
 const PORT = Number(process.argv[2] || 9444);
-const TOKEN = randomBytes(16).toString('hex');
+const TOKEN = process.env.RELAY_TOKEN || randomBytes(16).toString('hex');
 
 const browser = await chromium.connectOverCDP(CDP);
 const page = () => {
@@ -24,28 +24,31 @@ const page = () => {
   return pages[i >= 0 && i < pages.length ? i : pages.length - 1];
 };
 
-const HTML = `<!doctype html><meta name=viewport content="width=device-width,initial-scale=1">
+// пути абсолютные: без завершающего «/» в адресе относительный shot.png уходил мимо токена
+const HTML = (base) => `<!doctype html><meta name=viewport content="width=device-width,initial-scale=1">
 <title>Капча</title><style>body{margin:0;font:15px sans-serif;background:#111;color:#eee}
 p{margin:8px}img{width:100%;display:block;touch-action:manipulation}button{font-size:15px;margin:4px 8px}</style>
 <p>Тап по картинке = клик в браузере. <button id=d>перетаскивание: выкл</button></p><img id=s>
 <script>
 const s=document.getElementById('s'),d=document.getElementById('d');let drag=false,from=null;
-const load=()=>{const i=new Image();i.onload=()=>{s.src=i.src;setTimeout(load,1200)};i.onerror=()=>setTimeout(load,3000);i.src='shot.png?'+Date.now()};load();
+const B='${base}';
+const load=()=>{const i=new Image();i.onload=()=>{s.src=i.src;setTimeout(load,1200)};i.onerror=()=>setTimeout(load,3000);i.src=B+'shot.png?'+Date.now()};load();
 d.onclick=()=>{drag=!drag;from=null;d.textContent='перетаскивание: '+(drag?'вкл (тап «откуда», потом «куда»)':'выкл')};
 s.onclick=e=>{const r=s.getBoundingClientRect(),p=[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height];
- if(!drag)return fetch('click?x='+p[0]+'&y='+p[1],{method:'POST'});
- if(!from){from=p;return}fetch('drag?x='+from[0]+'&y='+from[1]+'&x2='+p[0]+'&y2='+p[1],{method:'POST'});from=null};
+ if(!drag)return fetch(B+'click?x='+p[0]+'&y='+p[1],{method:'POST'});
+ if(!from){from=p;return}fetch(B+'drag?x='+from[0]+'&y='+from[1]+'&x2='+p[0]+'&y2='+p[1],{method:'POST'});from=null};
 </script>`;
 
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const [, tok, act = ''] = url.pathname.split('/');
   if (tok !== TOKEN) return res.writeHead(404).end();
+  if (url.pathname === `/${TOKEN}`) return res.writeHead(302, { location: `/${TOKEN}/` }).end();
   try {
     const p = page();
     const vp = p.viewportSize() || { width: 1366, height: 900 };
     const at = (k) => Number(url.searchParams.get(k));
-    if (act === '') return res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(HTML);
+    if (act === '') return res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(HTML(`/${TOKEN}/`));
     if (act === 'shot.png')
       return res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'no-store' }).end(await p.screenshot());
     if (req.method === 'POST' && act === 'click') {

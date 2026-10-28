@@ -33,6 +33,18 @@ popup): close that first. Refs `f2e5` point into iframes (embedded ATS forms).
 - **Employer's site only.** From a digest link (Changellenge, a Telegram post) go
   to the company's career site: search the vacancy title there (e.g.
   career.ozon.ru, sberbank.ru/careers, career.avito.com) and apply there.
+- **Preflight, before writing a resume.** Two checks, both advisory; show the result to the user in a line or two:
+  ```bash
+  $B live <vacancy-url>       # LIVE | CLOSED | UNSURE + evidence (HTTP, «вакансия закрыта», redirect, apply button)
+  node scripts/precheck.mjs --company '<company>' --title '<title>' --url '<url>'   # OK | WARN | BLACKLIST
+  ```
+  `live` opens its own tab, so a half-filled form in the current tab stays as it is. CLOSED: stop
+  and tell the user. UNSURE: read `text` and decide. `precheck` checks `~/.config/job-apply/blacklist.tsv`
+  (the user's own do-not-apply list) and past applications in `applied.tsv` + `history.tsv`
+  (the sheet's older rows). BLACKLIST: quote the reason and apply only after an explicit «да, всё равно».
+  DUP or SIMILAR: show the old row and ask. NOTE (several applications to one company): keep the resume
+  consistent with the earlier ones. Pass titles in single quotes; never paste raw vacancy text into the command.
+  When the user says to blacklist a company or team, append a line to `blacklist.tsv` yourself.
 - **Data comes from `~/.config/job-apply/profile.yaml`** (outside the repo; never commit
   or paste it in full). The first name on applications is `name.first` from the profile (the form the user goes by, not necessarily the passport one). Fields marked TODO
   are unconfirmed: ask the user before using them.
@@ -66,4 +78,5 @@ popup): close that first. Refs `f2e5` point into iframes (embedded ATS forms).
   sheet (Applications) with **every** column filled: A–H (company, role, date, stage, status, next step
   with date, foreigners, notes) and I–N (vacancy link, resume file, cover letter text, every
   questionnaire answer, source, correspondence). Later emails from the employer go into N, and they
-  update E/F.
+  update E/F. If the sheet has rows that are missing from `applied.tsv`/`history.tsv`
+  (added by hand), append them to `history.tsv` (same columns) so `precheck` sees them.
