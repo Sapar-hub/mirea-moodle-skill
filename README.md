@@ -15,16 +15,16 @@
 
 **Claude Code (через marketplace):**
 ```
-/plugin marketplace add Sapar-hub/mirea-moodle-skill
+/plugin marketplace add Sapar-hub/sapar-skills
 /plugin install mirea-moodle@sapar-skills
 /plugin install job-search@sapar-skills
 ```
 
 **Claude Code / OpenCode (вручную):**
 ```bash
-git clone https://github.com/Sapar-hub/mirea-moodle-skill
+git clone https://github.com/Sapar-hub/sapar-skills
 # Claude Code: ~/.claude/skills/   OpenCode: ~/.config/opencode/skills/
-cp -r mirea-moodle-skill/plugins/*/skills/* ~/.claude/skills/
+cp -r sapar-skills/plugins/*/skills/* ~/.claude/skills/
 ```
 
 Нужны: `bash`, `curl`, `python3`; для pdf — `libreoffice`. Для аудита SyncShare дополнительно Node.js, Chrome/Chromium, `openssl`, `unzip` и `xvfb-run` на headless-машине. Для `job-search` — Docker (RSSHub), systemd `--user`, Node.js и Chromium (Playwright), ящик Mail.ru с паролем для внешних приложений.
